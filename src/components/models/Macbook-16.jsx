@@ -11,16 +11,20 @@ Title: macbook pro M3 16 inch 2024
 import {useGLTF, useTexture} from '@react-three/drei'
 import useMacbookStore from "../../store/index.js";
 import {noChangeParts} from "../../constants/index.js";
-import { Color } from 'three';
+import {Color, SRGBColorSpace} from 'three';
 import {useEffect} from "react";
 
 export default function MacbookModel16(props) {
     const { color } = useMacbookStore();
     const { nodes, materials, scene} = useGLTF('/models/macbook-16-transformed.glb')
 
-    let texture = useTexture('/screen.png');
-    // texture.colorSpace = SRGBColorSpace;
-    // texture.needsUpdate = true;
+    // * 加载图片并返回 Three.js 的 Texture 对象。Drei 会按 URL 缓存它。
+    const texture = useTexture('/screen.png', (loadedTexture) => {
+        // * 声明该图片是普通颜色图片，渲染时进行正确的 sRGB 色彩转换，避免颜色偏暗或失真
+        loadedTexture.colorSpace = SRGBColorSpace;
+        // * 通知 Three.js 纹理配置发生变化，需要重新上传或更新 GPU 纹理。
+        loadedTexture.needsUpdate = true;
+    });
 
     useEffect(() => {
         scene.traverse((child) => {
